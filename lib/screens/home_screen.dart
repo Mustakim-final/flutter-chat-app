@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:chat_app/api/apis.dart';
 import 'package:chat_app/models/chat_user.dart';
+import 'package:chat_app/screens/profile_screen.dart';
 import 'package:chat_app/widgets/chat_user_cart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
           //user searching
           IconButton(onPressed: (){}, icon: Icon(Icons.search)),
           //profile
-          IconButton(onPressed: (){}, icon: Icon(Icons.more_vert)),
+          IconButton(onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>ProfileScreen(user: list[0],)));
+          }, icon: Icon(Icons.more_vert)),
         ],
       ),
 
@@ -45,9 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 8.0),
         child: FloatingActionButton(
-          onPressed: () async{
-              await FirebaseAuth.instance.signOut();
-              await GoogleSignIn().signOut();
+          onPressed: (){
+
           },
           child: Icon(Icons.add),
         ),
