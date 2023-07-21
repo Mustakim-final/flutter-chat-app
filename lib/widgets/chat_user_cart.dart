@@ -1,4 +1,5 @@
 import 'package:chat_app/models/chat_user.dart';
+import 'package:chat_app/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -21,7 +22,9 @@ class _ChatUserCartState extends State<ChatUserCart> {
       color: Colors.blue.shade50,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: InkWell(
-        onTap: (){},
+        onTap: (){
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>ChatScreen(user: widget.user,)));
+        },
           child: ListTile(
             // leading: const CircleAvatar(child: Icon(Icons.person),),
             leading: ClipRRect(
