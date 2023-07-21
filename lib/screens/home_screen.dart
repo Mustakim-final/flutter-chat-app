@@ -25,70 +25,130 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<ChatUser> list=[];
 
+  //for storing search item
+  final List<ChatUser> _searchList=[];
+
+  //for storing search status
+
+  bool _isSearching=false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    APIs.getSelfInfo();
+  }
+
   @override
   Widget build(BuildContext context) {
 
 
-    return Scaffold(
-      //app bar
-      appBar: AppBar(
-        leading: Icon(CupertinoIcons.home),
-        title: Text("Chat App"),
-        actions: [
-          //user searching
-          IconButton(onPressed: (){}, icon: Icon(Icons.search)),
-          //profile
-          IconButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>ProfileScreen(user: list[0],)));
-          }, icon: Icon(Icons.more_vert)),
-        ],
-      ),
+    return GestureDetector(
+      //for hiding keyboard
+      onTap: ()=>FocusScope.of(context).unfocus(),
+      child: WillPopScope(
+        //if search is on & back button is pressed then close search
+        //or else simple close current screen on back button click
+        onWillPop: (){
+          if(_isSearching){
+            setState(() {
+              _isSearching=!_isSearching;
 
-      //floating button for new user add
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 8.0),
-        child: FloatingActionButton(
-          onPressed: (){
+            });
+            return Future.value(false);
+          }else{
+            return Future.value(true);
+          }
+        },
+        child: Scaffold(
+          //app bar
+          appBar: AppBar(
+            leading: Icon(CupertinoIcons.home),
+            title: _isSearching?TextField(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Name,Email,...',
+              ),
+              autofocus: true,
 
-          },
-          child: Icon(Icons.add),
-        ),
-      ),
+              //when search text changes then update search list
+              onChanged: (val){
+                //search logic
+                _searchList.clear();
+                for(var i in list){
+                  if(i.name.toLowerCase().contains(val.toLowerCase()) || i.email.toLowerCase().contains(val.toLowerCase()) ){
+                    _searchList.add(i);
+                  }
+                  setState(() {
+                    _searchList;
+                  });
+                }
+              },
+            ): Text("Chat App"),
+            actions: [
+              //user searching
+              IconButton(onPressed: (){
+                setState(() {
+                  _isSearching=!_isSearching;
+                });
+              }, icon: Icon(_isSearching?CupertinoIcons.clear_circled_solid:Icons.search)
 
-      body: StreamBuilder(
-        stream: APIs.firestore.collection("Users").snapshots(),
-        builder:(context,snapshot){
-          switch(snapshot.connectionState){
-            //if data is loading
-            case ConnectionState.waiting:
-            case ConnectionState.none:
-              return Center(child: CircularProgressIndicator(),);
+              ),
+              //profile
+              IconButton(onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>ProfileScreen(user: APIs.me,)));
+              }, icon: Icon(Icons.more_vert)),
+            ],
+          ),
 
-              //if some or all data is loaded then it show
-            case ConnectionState.active:
-            case ConnectionState.done:
-              final data=snapshot.data?.docs;
-              list=data?.map((e) => ChatUser.fromJson(e.data())).toList()??[];
+          //floating button for new user add
+          floatingActionButton: Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: FloatingActionButton(
+              onPressed: (){
 
-              if(list.isNotEmpty){
-                return ListView.builder(
-                    physics: BouncingScrollPhysics(),
-                    itemCount: list.length,
-                    itemBuilder: (context,index){
-                      return ChatUserCart(user: list[index]);
-                    }
-                );
-              }else{
-                return Center(
-                  child: Text("No data found"),
-                );
+              },
+              child: Icon(Icons.add),
+            ),
+          ),
+
+          body: StreamBuilder(
+            // stream: APIs.firestore.collection("Users").snapshots(),
+            stream:APIs.getAllUser(),
+            builder:(context,snapshot){
+              switch(snapshot.connectionState){
+                //if data is loading
+                case ConnectionState.waiting:
+                case ConnectionState.none:
+                  return Center(child: CircularProgressIndicator(),);
+
+                  //if some or all data is loaded then it show
+                case ConnectionState.active:
+                case ConnectionState.done:
+                  final data=snapshot.data?.docs;
+                  list=data?.map((e) => ChatUser.fromJson(e.data())).toList()??[];
+
+                  if(list.isNotEmpty){
+                    return ListView.builder(
+                        physics: BouncingScrollPhysics(),
+                        itemCount:_isSearching?_searchList.length: list.length,
+                        itemBuilder: (context,index){
+                          return ChatUserCart(user: _isSearching?_searchList[index]: list[index]);
+                        }
+                    );
+                  }else{
+                    return Center(
+                      child: Text("No data found"),
+                    );
+                  }
+
               }
 
-          }
 
 
-
-        }
+            }
+          ),
+        ),
       ),
     );
   }

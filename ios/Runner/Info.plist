@@ -63,5 +63,11 @@
     	</dict>
     </array>
     <!-- End of the Google Sign-in Section -->
+
+    <!-- permission for picking image from taking gallery and camera -->
+
+    <key>NSPhotoLibraryUsageDescription</key>
+    <key>NSCameraUsageDescription</key>
+
 </dict>
 </plist>
