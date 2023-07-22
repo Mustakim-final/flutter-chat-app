@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:chat_app/models/chat_user.dart';
+import 'package:chat_app/models/message.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -104,9 +105,27 @@ class APIs{
  }
 
   //get messages specific user
-  static Stream<QuerySnapshot<Map<String,dynamic>>> getAllMessages(){
-    return firestore.collection("messags").snapshots();
+  // static Stream<QuerySnapshot<Map<String,dynamic>>> getAllMessages(){
+  //   return firestore.collection("messags").snapshots();
+  // }
+
+  //useful for getting conversion id
+  static String getConversionId(String id)=>user!.uid.hashCode<=id.hashCode?'${user!.uid}_$id':'${id}_${user!.uid}';
+  //for getting all messages of a specific conversion from firestore database
+  static Stream<QuerySnapshot<Map<String,dynamic>>> getAllMessages(ChatUser user){
+    return firestore.collection('chats/${getConversionId(user.id)}/messages/').snapshots();
   }
 
+  //for sending message
+
+  static Future<void> sendMessage(ChatUser chatUser,String msg) async {
+    //message sending time
+    final time=DateTime.now().microsecondsSinceEpoch.toString();
+    //message to send
+    final Message message=Message(msg: msg, read: '', told: chatUser.id, type: Type.text, fromId: user!.uid, sent: time);
+    final ref=firestore.collection('chats/${getConversionId(chatUser.id)}/messages/');
+    await ref.doc(time).set(message.toJson());
+
+  }
 }
 

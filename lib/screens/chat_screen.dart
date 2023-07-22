@@ -19,6 +19,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
 
   List<Message> list=[];
+  final _textController=TextEditingController();
   @override
   Widget build(BuildContext context) {
     var mq=MediaQuery.of(context).size;
@@ -33,23 +34,23 @@ class _ChatScreenState extends State<ChatScreen> {
             Expanded(
               child: StreamBuilder(
                 // stream: APIs.firestore.collection("Users").snapshots(),
-                  stream: APIs.getAllMessages(),
+                  stream: APIs.getAllMessages(widget.user),
                   builder:(context,snapshot){
                     switch(snapshot.connectionState){
                     //if data is loading
                       case ConnectionState.waiting:
                       case ConnectionState.none:
-                        // return Center(child: CircularProgressIndicator(),);
+                        return SizedBox();
 
                     //if some or all data is loaded then it show
                       case ConnectionState.active:
                       case ConnectionState.done:
                         final data=snapshot.data?.docs;
-                        log('Data: ${jsonEncode(data![0].data())}');
-                        // list=data?.map((e) => ChatUser.fromJson(e.data())).toList()??[];
-                        list.clear();
-                        list.add(Message(msg: 'hi', read: '', told: 'xyz', type: Type.text, fromId: APIs.user!.uid, sent: '11:00 PM'));
-                        list.add(Message(msg: 'hello', read: '', told: APIs.user!.uid, type: Type.text, fromId: 'xyz', sent: '12:00 PM'));
+                        // log('Data: ${jsonEncode(data![0].data())}');
+                        list=data?.map((e) => Message.fromJson(e.data())).toList()??[];
+                        // list.clear();
+                        // list.add(Message(msg: 'hi', read: '', told: 'xyz', type: Type.text, fromId: APIs.user!.uid, sent: '11:00 PM'));
+                        // list.add(Message(msg: 'hello', read: '', told: APIs.user!.uid, type: Type.text, fromId: 'xyz', sent: '12:00 PM'));
                         if(list.isNotEmpty){
                           return ListView.builder(
                               physics: BouncingScrollPhysics(),
@@ -156,6 +157,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
                   Expanded(
                       child: TextField(
+                        controller: _textController,
                         keyboardType: TextInputType.multiline,
                         maxLines: null,
                         decoration: InputDecoration(
@@ -190,7 +192,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
           MaterialButton(
             minWidth: 0,
-              onPressed: (){},
+              onPressed: (){
+              if(_textController.text.isNotEmpty){
+                APIs.sendMessage(widget.user, _textController.text);
+                _textController.text='';
+              }
+              },
             padding: EdgeInsets.only(top: 10,bottom: 10,right: 5,left: 10),
             color: Colors.blueAccent,
             child: Icon(Icons.send),
