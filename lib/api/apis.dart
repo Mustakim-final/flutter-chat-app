@@ -102,5 +102,11 @@ class APIs{
    });
 
  }
+
+  //get messages specific user
+  static Stream<QuerySnapshot<Map<String,dynamic>>> getAllMessages(){
+    return firestore.collection("messags").snapshots();
+  }
+
 }
 
