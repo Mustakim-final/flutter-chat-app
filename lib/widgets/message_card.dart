@@ -2,6 +2,7 @@ import 'package:chat_app/api/apis.dart';
 import 'package:chat_app/helper/my_date_util.dart';
 import 'package:chat_app/models/message.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MessageCard extends StatefulWidget {
   final Message message;
@@ -27,14 +28,26 @@ class _MessageCardState extends State<MessageCard> {
       children: [
         Flexible(
           child: Container(
-            padding: EdgeInsets.all(mq.width*.04),
+            padding: EdgeInsets.all(widget.message.type==Type.image?mq.width*.03:mq.width*.04),
             margin: EdgeInsets.symmetric(horizontal: mq.width*.04,vertical: mq.height*.01),
             decoration: BoxDecoration(
                 color: Color.fromARGB(255, 221, 245, 255),
                 border: Border.all(color: Colors.lightBlue),
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20),bottomRight: Radius.circular(20))
             ),
-            child: Text(widget.message.msg,style: TextStyle(fontSize: 15,color: Colors.black),),
+            child:
+            widget.message.type==Type.text?
+            Text(widget.message.msg,style: TextStyle(fontSize: 15,color: Colors.black),):
+            ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: CachedNetworkImage(
+                imageUrl: widget.message.msg,
+                placeholder: (context, url) => Padding(
+                    padding: EdgeInsets.all(8),
+                    child: CircularProgressIndicator(strokeWidth: 2,)),
+                errorWidget: (context, url, error) => CircleAvatar(child: Icon(Icons.person),),
+              ),
+            ),
 
           ),
         ),
@@ -75,14 +88,26 @@ Widget _greenMessage(BuildContext context){
 
         Flexible(
           child: Container(
-            padding: EdgeInsets.all(mq.width*.04),
+            padding: EdgeInsets.all(widget.message.type==Type.image?mq.width*.03:mq.width*.04),
             margin: EdgeInsets.symmetric(horizontal: mq.width*.04,vertical: mq.height*.01),
             decoration: BoxDecoration(
                 color: Color.fromARGB(255, 221, 245, 255),
                 border: Border.all(color: Colors.lightGreen),
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20),bottomLeft: Radius.circular(20))
             ),
-            child: Text(widget.message.msg,style: TextStyle(fontSize: 15,color: Colors.black),),
+            child:
+            widget.message.type==Type.text?
+            Text(widget.message.msg,style: TextStyle(fontSize: 15,color: Colors.black),):
+            ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: CachedNetworkImage(
+                imageUrl: widget.message.msg,
+                placeholder: (context, url) => Padding(
+                    padding: EdgeInsets.all(8),
+                    child: CircularProgressIndicator(strokeWidth: 2,)),
+                errorWidget: (context, url, error) => CircleAvatar(child: Icon(Icons.person),),
+              ),
+            ),
 
           ),
         ),

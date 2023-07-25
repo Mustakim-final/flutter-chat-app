@@ -50,7 +50,7 @@ class _ChatUserCartState extends State<ChatUserCart> {
                   ),
                 ),
                 title: Text(widget.user.name),
-                subtitle: Text(message!=null?message!.msg: widget.user.about,maxLines: 1,),
+                subtitle: Text(message!=null?message!.type==Type.image? 'Photo': message!.msg: widget.user.about,maxLines: 1,),
                 trailing:
                 message==null?null
                 :message!.read.isEmpty && message!.fromId!=APIs.user!.uid?

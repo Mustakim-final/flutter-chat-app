@@ -113,16 +113,19 @@ class APIs{
   static String getConversionId(String id)=>user!.uid.hashCode<=id.hashCode?'${user!.uid}_$id':'${id}_${user!.uid}';
   //for getting all messages of a specific conversion from firestore database
   static Stream<QuerySnapshot<Map<String,dynamic>>> getAllMessages(ChatUser user){
-    return firestore.collection('chats/${getConversionId(user.id)}/messages/').snapshots();
+    return firestore.collection('chats/${getConversionId(user.id)}/messages/')
+        .orderBy('sent',descending: true)
+        .snapshots();
   }
 
   //for sending message
 
-  static Future<void> sendMessage(ChatUser chatUser,String msg) async {
+  static Future<void> sendMessage(ChatUser chatUser,String msg,Type type) async {
     //message sending time
     final time=DateTime.now().microsecondsSinceEpoch.toString();
     //message to send
-    final Message message=Message(msg: msg, read: '', told: chatUser.id, type: Type.text, fromId: user!.uid, sent: time);
+    final Message message=Message(msg: msg, read: '', told: chatUser.id, type: type, fromId: user!.uid, sent: time);
+    //type: Type.text beginng write
     final ref=firestore.collection('chats/${getConversionId(chatUser.id)}/messages/');
     await ref.doc(time).set(message.toJson());
 
@@ -141,6 +144,27 @@ class APIs{
     return firestore.collection('chats/${getConversionId(user.id)}/messages/')
         .orderBy('sent',descending: true)
         .limit(1).snapshots();
+  }
+
+  //sent chat image
+  static Future<void> sendChatImage(ChatUser chatUser,File file) async {
+    //getting image file extension
+    final ext=file.path.split('.').last;
+
+    //storage file ref with path
+    final ref=firebaseStorage.ref().child('images/${getConversionId(chatUser.id)}/${DateTime.now().millisecondsSinceEpoch}.$ext');
+    //uploading image
+    ref.putFile(file,SettableMetadata(contentType: 'images/$ext')).then((p0) async {
+      log('Data transferred: ${p0.bytesTransferred/1000} kb');
+      // log('message');
+      //upload image in firestore
+      final imageUrl= await ref.getDownloadURL();
+      log('Image: ${imageUrl}');
+      await sendMessage(chatUser, imageUrl, Type.image);
+      log('upload mus');
+
+
+    });
   }
 }
 
