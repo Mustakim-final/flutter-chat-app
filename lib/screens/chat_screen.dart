@@ -3,7 +3,9 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:chat_app/api/apis.dart';
+import 'package:chat_app/helper/my_date_util.dart';
 import 'package:chat_app/models/chat_user.dart';
+import 'package:chat_app/screens/view_profile_screen.dart';
 import 'package:chat_app/widgets/message_card.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -126,53 +128,67 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _appBar(BuildContext context){
     var mq=MediaQuery.of(context).size;
     return InkWell(
-      onTap: (){},
-      child: Row(
-        children: [
-          IconButton(
-              onPressed: (){
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.arrow_back),
-            color: Colors.black,
-          ),
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(builder: (context)=>ViewProfileScreen(user: widget.user,)));
+      },
+      child: StreamBuilder(
+        stream: APIs.getUserInfo(widget.user),
+        builder:(context,snapshot) {
+          final data=snapshot.data?.docs;
+          final list=data?.map((e) => ChatUser.fromJson(e.data())).toList()??[];
 
-          ClipRRect(
-            borderRadius: BorderRadius.circular(mq.height*.03),
-            child: CachedNetworkImage(
-              height: mq.height*.09,
-              width: mq.width*.09,
-              imageUrl: widget.user.image,
-              placeholder: (context, url) => CircularProgressIndicator(),
-              errorWidget: (context, url, error) => CircleAvatar(child: Icon(Icons.person),),
-            ),
-          ),
-          SizedBox(width: 10,),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
+          return Row(
             children: [
-              Text(
-                widget.user.name,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                  fontWeight: FontWeight.w500
-                ),
+              IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: Icon(Icons.arrow_back),
+                color: Colors.black,
               ),
 
-              SizedBox(height: 2,),
-
-              const Text(
-                'Last seen not availabel',
-                style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.black54,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(mq.height * .03),
+                child: CachedNetworkImage(
+                  height: mq.height * .09,
+                  width: mq.width * .09,
+                  imageUrl:list.isNotEmpty?list[0].image: widget.user.image,
+                  placeholder: (context, url) => CircularProgressIndicator(),
+                  errorWidget: (context, url, error) =>
+                      CircleAvatar(child: Icon(Icons.person),),
                 ),
               ),
+              SizedBox(width: 10,),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    list.isNotEmpty?list[0].name:widget.user.name,
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w500
+                    ),
+                  ),
+
+                  SizedBox(height: 2,),
+
+                  Text(
+                    list.isNotEmpty?list[0].isOnline?'Online'
+                        :MyDateUtil.getLastActiveTime(context: context, lastActive: list[0].lastActive)
+                        : MyDateUtil.getLastActiveTime(context: context, lastActive: widget.user.lastActive),
+
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              )
             ],
-          )
-        ],
+          );
+        },
       ),
     );
   }
@@ -271,7 +287,12 @@ class _ChatScreenState extends State<ChatScreen> {
             minWidth: 0,
               onPressed: (){
               if(_textController.text.isNotEmpty){
-                APIs.sendMessage(widget.user, _textController.text,Type.text);
+                if(list.isEmpty){
+                  APIs.sendFirstMessage(widget.user, _textController.text,Type.text);
+                }else{
+                  APIs.sendMessage(widget.user, _textController.text,Type.text);
+                }
+
                 _textController.text='';
               }
               },

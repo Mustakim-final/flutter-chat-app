@@ -7,9 +7,22 @@ class MyDateUtil{
     return TimeOfDay.fromDateTime(date).format(context);
   }
 
+  //get formatted time sen and read
+  static String getMessageTime({required BuildContext context,required String time}){
+    final DateTime sent=DateTime.fromMicrosecondsSinceEpoch(int.parse(time));
+    final DateTime now=DateTime.now();
+
+    final formattedTime=TimeOfDay.fromDateTime(sent).format(context);
+    if(now.day==sent.day && now.month==sent.month && now.year==sent.year){
+      return TimeOfDay.fromDateTime(sent).format(context);
+    }
+
+    return now.year==sent.year?'$formattedTime - ${sent.day} ${getMonth(sent)}':'$formattedTime - ${sent.day} ${getMonth(sent)} ${sent.year}';
+  }
+
 
   //get last message time(use in chat user card)
-  static String getLastMessageTime({required BuildContext context,required String time}){
+  static String getLastMessageTime({required BuildContext context,required String time,bool showYear=false}){
     final DateTime sent=DateTime.fromMicrosecondsSinceEpoch(int.parse(time));
     final DateTime now=DateTime.now();
 
@@ -17,7 +30,29 @@ class MyDateUtil{
       return TimeOfDay.fromDateTime(sent).format(context);
     }
 
-    return '${sent.day} ${getMonth(sent)}';
+    return showYear?'${sent.day} ${getMonth(sent)} ${sent.year}': '${sent.day} ${getMonth(sent)}';
+
+  }
+
+  //get formatted last active time of user in chat screen
+
+  static String getLastActiveTime({required BuildContext context,required String lastActive}){
+    final int i=int.tryParse(lastActive)??-1;
+
+    //if time is not availabel the return statment
+    if(i==-1)
+      return 'Last seen not available';
+    DateTime time=DateTime.fromMicrosecondsSinceEpoch(i);
+    DateTime dateTime=DateTime.now();
+
+    String formattedTime=TimeOfDay.fromDateTime(time).format(context);
+
+    if(time.day==dateTime.day && time.month==dateTime.month && time.year==dateTime.year){
+      return 'Last seen today at $formattedTime}';
+    }
+
+    String month=getMonth(time);
+    return 'Last seen on ${time.day} $month on $formattedTime';
 
   }
 

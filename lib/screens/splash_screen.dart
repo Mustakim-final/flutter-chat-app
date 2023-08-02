@@ -46,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
       //app bar
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("Chat App"),
+        title: Text("Barta"),
         actions: [
 
         ],
@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
           Positioned(
               width: mq.width*.9,
               bottom: mq.height*.15,
-              child:Text("I LOVE BANGLADESH",
+              child:Text("M",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),)
           ),

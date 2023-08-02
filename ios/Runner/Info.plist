@@ -68,6 +68,7 @@
 
     <key>NSPhotoLibraryUsageDescription</key>
     <key>NSCameraUsageDescription</key>
+    <key>NSPhotoLibraryUsageDescription</key>
 
 </dict>
 </plist>

@@ -60,6 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: FloatingActionButton.extended(
             onPressed: () async{
               Dialogs.showProgressBar(context);
+              APIs.updateActiveStatus(false);
               //firebase sign out
               await FirebaseAuth.instance.signOut().then((value) async {
                 //google sign out
@@ -67,6 +68,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Navigator.pop(context);
 
                   Navigator.pop(context);
+
+                  APIs.auth=FirebaseAuth.instance;
 
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>LoginScreen()));
                 });

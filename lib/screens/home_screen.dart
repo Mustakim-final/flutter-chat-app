@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:chat_app/api/apis.dart';
+import 'package:chat_app/helper/dialogs.dart';
 import 'package:chat_app/models/chat_user.dart';
 import 'package:chat_app/screens/profile_screen.dart';
 import 'package:chat_app/widgets/chat_user_cart.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -37,6 +39,16 @@ class _HomeScreenState extends State<HomeScreen> {
     // TODO: implement initState
     super.initState();
     APIs.getSelfInfo();
+    //APIs.updateActiveStatus(true);
+    SystemChannels.lifecycle.setMessageHandler((message){
+
+      if(APIs.auth.currentUser!=null){
+        if(message.toString().contains('resume')) APIs.updateActiveStatus(true);
+        if(message.toString().contains('pause')) APIs.updateActiveStatus(false);
+      }
+
+      return Future.value(message);
+    });
   }
 
   @override
@@ -84,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 }
               },
-            ): Text("Chat App"),
+            ): Text("Barta"),
             actions: [
               //user searching
               IconButton(onPressed: (){
@@ -106,50 +118,99 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.only(bottom: 8.0),
             child: FloatingActionButton(
               onPressed: (){
-
+                showUserAddDialog();
               },
               child: Icon(Icons.add),
             ),
           ),
 
           body: StreamBuilder(
-            // stream: APIs.firestore.collection("Users").snapshots(),
-            stream:APIs.getAllUser(),
-            builder:(context,snapshot){
-              switch(snapshot.connectionState){
-                //if data is loading
-                case ConnectionState.waiting:
-                case ConnectionState.none:
-                  return Center(child: CircularProgressIndicator(),);
+            stream: APIs.getMyUserId(),
+            builder: (context,snapshot){
+                switch(snapshot.connectionState){
+                      //if data is loading
+                      case ConnectionState.waiting:
+                      case ConnectionState.none:
+                      return Center(child: CircularProgressIndicator(),);
 
-                  //if some or all data is loaded then it show
-                case ConnectionState.active:
-                case ConnectionState.done:
-                  final data=snapshot.data?.docs;
-                  list=data?.map((e) => ChatUser.fromJson(e.data())).toList()??[];
+                      //if some or all data is loaded then it show
+                      case ConnectionState.active:
+                      case ConnectionState.done:
+                return StreamBuilder(
+                  // stream: APIs.firestore.collection("Users").snapshots(),
+                    stream:APIs.getAllUser(snapshot.data?.docs.map((e) => e.id).toList()??[]),
+                    builder:(context,snapshot){
 
-                  if(list.isNotEmpty){
-                    return ListView.builder(
-                        physics: BouncingScrollPhysics(),
-                        itemCount:_isSearching?_searchList.length: list.length,
-                        itemBuilder: (context,index){
-                          return ChatUserCart(user: _isSearching?_searchList[index]: list[index]);
-                        }
-                    );
-                  }else{
-                    return Center(
-                      child: Text("No data found"),
-                    );
-                  }
+                          final data=snapshot.data?.docs;
+                          list=data?.map((e) => ChatUser.fromJson(e.data())).toList()??[];
 
-              }
+                          if(list.isNotEmpty){
+                            return ListView.builder(
+                                physics: BouncingScrollPhysics(),
+                                itemCount:_isSearching?_searchList.length: list.length,
+                                itemBuilder: (context,index){
+                                  return ChatUserCart(user: _isSearching?_searchList[index]: list[index]);
+                                }
+                            );
+                          }else{
+                            return Center(
+                              child: Text("No data found"),
+                            );
+                          }
 
+                      }
 
+                );
+              }//if
 
-            }
-          ),
+            },
+          )
+
         ),
       ),
+    );
+  }
+
+  //show user add dialog
+  void showUserAddDialog(){
+    String email='';
+    showDialog(
+        context: context,
+        builder: (context)=>AlertDialog(
+          contentPadding: EdgeInsets.only(left: 24,right: 24,top: 20,bottom: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Icon(Icons.person_add,color: Colors.blue,size: 28,),
+              Text(" Add User"),
+            ],
+          ),
+          content: TextFormField(
+            maxLines: null,
+            onChanged: (value)=>email=value,
+            decoration: InputDecoration(
+              hintText: 'email id',
+                prefixIcon: Icon(Icons.email),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15))
+            ),
+          ),
+          actions: [
+            MaterialButton(onPressed: (){
+              Navigator.pop(context);
+            },child: Text("Cancel",style: TextStyle(color: Colors.blue,fontSize: 16),),),
+
+            MaterialButton(onPressed: () async {
+              Navigator.pop(context);
+              if(email.isNotEmpty){
+                await APIs.addChatUser(email).then((value){
+                  if(!value){
+                    Dialogs.showSnackbar(context, "User does not exits!");
+                  }
+                });
+              }
+            },child: Text("Add",style: TextStyle(color: Colors.blue,fontSize: 16),),),
+          ],
+        )
     );
   }
 }
