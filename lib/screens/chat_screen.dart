@@ -6,12 +6,14 @@ import 'package:chat_app/api/apis.dart';
 import 'package:chat_app/helper/my_date_util.dart';
 import 'package:chat_app/models/chat_user.dart';
 import 'package:chat_app/screens/view_profile_screen.dart';
+import 'package:chat_app/widgets/call-invitation.dart';
 import 'package:chat_app/widgets/message_card.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/message.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+
 
 class ChatScreen extends StatefulWidget {
   final ChatUser user;
@@ -70,6 +72,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           case ConnectionState.done:
                             final data=snapshot.data?.docs;
                             // log('Data: ${jsonEncode(data![0].data())}');
+                            list=data?.map((e) => Message.fromJson(e.data())).toList()??[];
                             list=data?.map((e) => Message.fromJson(e.data())).toList()??[];
                             // list.clear();
                             // list.add(Message(msg: 'hi', read: '', told: 'xyz', type: Type.text, fromId: APIs.user!.uid, sent: '11:00 PM'));
@@ -185,7 +188,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                 ],
-              )
+              ),
+              SizedBox(width: mq.width*.03,),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>CallInviationPage(username: widget.user.name)));
+                },
+                icon: Icon(Icons.call),
+                color: Colors.black,
+              ),
             ],
           );
         },

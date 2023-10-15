@@ -28,6 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
       //splash screen off
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(systemNavigationBarColor: Colors.white,statusBarColor: Colors.white));
+
       if(FirebaseAuth.instance.currentUser!=null){
         log('\nUser: ${FirebaseAuth.instance.currentUser}');
 

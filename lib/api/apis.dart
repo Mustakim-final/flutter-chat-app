@@ -128,7 +128,7 @@ class APIs{
       id: auth.currentUser!.uid,
       name: auth.currentUser!.displayName.toString(),
       email: user!.email.toString(),
-      about: "Hey, i am using chat app",
+      about: "Hey, i am using barta app",
       image: user!.photoURL.toString(),
       createdAt: time,
       isOnline: false,
@@ -241,6 +241,7 @@ class APIs{
   //for sending message
 
   static Future<void> sendMessage(ChatUser chatUser,String msg,Type type) async {
+
     //message sending time
     final time=DateTime.now().microsecondsSinceEpoch.toString();
     //message to send
